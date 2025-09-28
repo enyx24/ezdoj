@@ -1,35 +1,38 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
-from fastapi.security import OAuth2PasswordRequestForm
 from datetime import datetime, timedelta, timezone
 from jose import jwt
-from passlib.context import CryptContext
+from passlib.hash import bcrypt
 from dotenv import load_dotenv
+import hashlib
 import os
 
-from models.auth import LoginRequest
+from app.models.auth import LoginRequest
 
 router = APIRouter()
 
-# Load env variables
-load_dotenv()
 # ==== CONFIG ====
+load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 30))
+DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# Giả sử DB (mock)
-fake_users_db = {
-    "alice": {
-        "username": "alice",
-        "hashed_password": pwd_context.hash("secret123"),
-    }
-}
 
 # ==== UTILS ====
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def hash_password(password: str) -> str:
+    """
+    Hash password an toàn:
+    - SHA256 trước để tránh giới hạn 72 bytes của bcrypt
+    - bcrypt để lưu trong DB
+    """
+    digest = hashlib.sha256(password.encode("utf-8")).digest()
+    return bcrypt.hash(digest)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    digest = hashlib.sha256(plain_password.encode("utf-8")).digest()
+    return bcrypt.verify(digest, hashed_password)
+
 
 def authenticate_user(username: str, password: str):
     user = fake_users_db.get(username)
@@ -39,12 +42,24 @@ def authenticate_user(username: str, password: str):
         return None
     return user
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+# ==== MOCK DB ====
+fake_users_db = {
+    "alice": {
+        "username": "alice",
+        "hashed_password": hash_password("secret123"),
+    }
+}
+
+if DEBUG:
+    print("DEBUG HASH:", hash_password("secret123"))
 
 # ==== ROUTES ====
 @router.post("/login")
@@ -59,7 +74,6 @@ async def login(request: LoginRequest, response: Response):
         expires_delta=access_token_expires
     )
 
-    # Set cookie ttl
     response.set_cookie(
         key="access_token",
         value=access_token,
@@ -70,6 +84,7 @@ async def login(request: LoginRequest, response: Response):
     )
 
     return {"msg": "Login successful"}
+
 
 @router.post("/logout")
 async def logout(response: Response):
