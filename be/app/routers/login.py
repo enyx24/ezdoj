@@ -5,8 +5,9 @@ from passlib.hash import bcrypt
 from dotenv import load_dotenv
 import hashlib
 import os
-
+from app.utils.auth import hash_password, verify_password
 from app.models.auth import LoginRequest
+from app.utils.mock_db import fake_users_db
 
 router = APIRouter()
 
@@ -19,21 +20,6 @@ DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
 
 # ==== UTILS ====
-def hash_password(password: str) -> str:
-    """
-    Hash password an toàn:
-    - SHA256 trước để tránh giới hạn 72 bytes của bcrypt
-    - bcrypt để lưu trong DB
-    """
-    digest = hashlib.sha256(password.encode("utf-8")).digest()
-    return bcrypt.hash(digest)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    digest = hashlib.sha256(plain_password.encode("utf-8")).digest()
-    return bcrypt.verify(digest, hashed_password)
-
-
 def authenticate_user(username: str, password: str):
     user = fake_users_db.get(username)
     if not user:
@@ -49,14 +35,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-
-# ==== MOCK DB ====
-fake_users_db = {
-    "alice": {
-        "username": "alice",
-        "hashed_password": hash_password("secret123"),
-    }
-}
 
 if DEBUG:
     print("DEBUG HASH:", hash_password("secret123"))
