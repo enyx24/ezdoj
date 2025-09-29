@@ -5,28 +5,18 @@ from passlib.hash import bcrypt
 from dotenv import load_dotenv
 import hashlib
 import os
-from app.utils.auth import hash_password, verify_password
+from app.utils.auth import authenticate_user
 from app.models.auth import LoginRequest
 from app.utils.mock_db import fake_users_db
 
 router = APIRouter()
 
 # ==== CONFIG ====
-load_dotenv()
+# load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 30))
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
-
-
-# ==== UTILS ====
-def authenticate_user(username: str, password: str):
-    user = fake_users_db.get(username)
-    if not user:
-        return None
-    if not verify_password(password, user["hashed_password"]):
-        return None
-    return user
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
@@ -35,9 +25,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None) -> s
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-
-if DEBUG:
-    print("DEBUG HASH:", hash_password("secret123"))
 
 # ==== ROUTES ====
 @router.post("/login")
