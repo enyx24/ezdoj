@@ -12,16 +12,13 @@ ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 30))
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
 # ==== MOCK DB ====
-from app.utils.mock_db import fake_users_db
 
 @router.post("/signup", response_model=SignupResponse)
 async def signup(request: SignupRequest):
     
-    # Validate passwords match
     if request.password != request.confirm_password:
         raise HTTPException(status_code=400, detail="Passwords do not match")
 
-    # Check if username already exists
     if check_user_exists(request.username):
         raise HTTPException(status_code=400, detail="Username already exists")
 
