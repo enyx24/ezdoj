@@ -2,8 +2,15 @@ import hashlib
 from passlib.hash import bcrypt
 from app.db.connect_db import get_conn
 import logging
+from datetime import datetime, timedelta, timezone
+from jose import jwt
+from passlib.hash import bcrypt
+import os
 
 conn = get_conn()
+SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 30))
 
 def hash_password(password: str) -> str:
     digest = hashlib.sha256(password.encode("utf-8")).digest()
@@ -56,4 +63,21 @@ def create_user(username: str, email: str, full_name: str, hashedpassword: str) 
         logging.error(f"Error creating user: {e}")
     finally:
         cursor.close()
-    return 
+    return
+
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+def get_current_user(token: str):
+    if not token:
+        return None
+    try:
+        credentials = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+    except Exception as e:
+        logging.error(f"Error occurred while decoding token: {e}")
+        return None
+    username: str = credentials.get("sub")
+    return username
