@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import health, users, submissions, login, signup
+from app.routers import health, users, submissions, login, signup, je_auth
 from app.db import models
 
 
@@ -15,6 +15,7 @@ app.include_router(users.router)
 app.include_router(submissions.router)
 app.include_router(login.router)
 app.include_router(signup.router)
+app.include_router(je_auth.router)
 
 #==== CLOSE DB CONNECTION ====
 @app.on_event("shutdown")

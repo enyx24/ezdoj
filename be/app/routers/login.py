@@ -5,7 +5,7 @@ from passlib.hash import bcrypt
 from dotenv import load_dotenv
 import hashlib
 import os
-from app.utils.auth import authenticate_user
+from app.utils.auth import *
 from app.models.auth import LoginRequest
 from app.utils.mock_db import fake_users_db
 
@@ -17,14 +17,6 @@ SECRET_KEY = os.getenv("SECRET_KEY", "supersecret")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_DAYS = int(os.getenv("ACCESS_TOKEN_EXPIRE_DAYS", 30))
 DEBUG = os.getenv("DEBUG", "true").lower() == "true"
-
-
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
-    to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS))
-    to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
 
 # ==== ROUTES ====
 @router.post("/login")
