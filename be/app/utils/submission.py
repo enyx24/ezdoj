@@ -1,5 +1,6 @@
 from app.db.connect_db import get_conn
 from app.utils.logging import logging
+from app import job_queue
 conn = get_conn()
 cursor = conn.cursor()
 
@@ -12,8 +13,13 @@ def submit(user, request):
     )
     try:
         conn.commit()
+        job_queue.append(cursor.fetchone()[0])
     except Exception as e:
         conn.rollback()
         logging.error(f"Error occurred while submitting: {e}")
     submission = cursor.fetchone()
     return submission
+
+def get_submission(submission_id):
+    cursor.execute("SELECT id, problem_id, code, language_id, status FROM submissions WHERE id = %s", (submission_id,))
+    return cursor.fetchone()
