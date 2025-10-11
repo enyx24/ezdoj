@@ -2,5 +2,5 @@
 __pycache__
 .pytest_cache
 .env
-requirements.txt
+# requirements.txt
 *.log
