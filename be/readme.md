@@ -1,35 +1,80 @@
-# Backend installation - structure guide
-## Installation
-    1. Requirements:
-        - Python 3.11.9
-        - docker if needed
-        - PostgreSQL 16.10
-        - be folder
-    2. venv setup:
-       `python -m venv .venv
-        # Linux:
-        .venv\Scripts\activate
-        # Windows:
-        .venv\Scripts\Activate.ps1
-        pip install -r requirements.txt`
-    3. Database setup:
-        `docker run -d --name db \
-        -e POSTGRES_PASSWORD=123456 \
-        -p 5432:5432 \
-        postgres:16`
-    4. Run:
-        - Create a .env file in `be/app/` using .env.example
-        - `uvicorn app.main:app --reload`
+# Backend Installation & Structure Guide
 
-## Structure
+## Installation
+
+### 1. Requirements
+- **Python** 3.11.9  
+- **PostgreSQL** 16.10  
+- **Docker** (optional, for database container)  
+- **`be/` folder** (project root)
+
+---
+
+### 2. Virtual Environment Setup
+
+```bash
+python -m venv .venv
+
+# Activate:
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+
+# Linux / macOS
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+---
+
+### 3. Database Setup (via Docker)
+
+```bash
+docker run -d --name db \
+  -e POSTGRES_PASSWORD=123456 \
+  -p 5432:5432 \
+  postgres:16
+```
+
+---
+
+### 4. Run the Server
+
+1. Copy `.env.example` to `.env` inside `be/app/`
+2. Start the app:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+
+---
+
+## Project Structure
+
+```
 be/
-|-- app/                // root folder
-|   |-- db/             // database modules (connect, models, etc)
-|   |-- models/         // Pydantic/ORM models
-|   |-- routers/        // routers, app
-|   |-- utils/          // utilities modules (auth, log, mockdb, etc)
-|   |-- .env.example    // example env config
-|   |-- __init__.py     // initialize something idk
-|   └-- main.py         // main application
-|-- test/               // unit test (idk)
-└-- requirements.txt    // python venv requirements
+├── app/                    # Root application package
+│   ├── db/                 # Database modules (connection, migrations, etc.)
+│   ├── models/             # Pydantic & ORM models
+│   ├── routers/            # API routes
+│   ├── utils/              # Helper utilities (auth, logging, etc.)
+│   ├── .env.example        # Example environment variables
+│   ├── __init__.py         # Initialize something (e.g. job queue, db connection, etc.)
+│   └── main.py             # Application entry point
+│
+├── test/                   # Unit tests (later uses)
+└── requirements.txt        # Python dependencies
+```
+---
+
+## Notes
+
+- Make sure PostgreSQL service is running before starting the backend.  
+- If using Docker, the default connection URL will be something like:  
+  ```
+  postgresql://postgres:123456@localhost:5432/postgres
+  ```
+- Add new dependencies via:
+  ```bash
+  pip install <package> && pip freeze > requirements.txt
+  ```
