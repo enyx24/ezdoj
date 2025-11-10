@@ -55,6 +55,7 @@ docker run -d --name db \
 be/
 ├── app/                    # Root application package
 │   ├── db/                 # Database modules (connection, migrations, etc.)
+│   ├── core/               # Core components
 │   ├── models/             # Pydantic & ORM models
 │   ├── routers/            # API routes
 │   ├── utils/              # Helper utilities (auth, logging, etc.)
