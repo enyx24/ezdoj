@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from app.models.submission import SubmissionResponse, SubmissionRequest
 from app.utils.auth import get_current_user
-from app.utils.submission import submit
+from app.core.submission import submit
 
 router = APIRouter(prefix="/submissions", tags=["submissions"])
 
