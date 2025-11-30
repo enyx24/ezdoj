@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from be.app.models.problem import ProblemUploadRequest, ProblemUploadResponse
+from app.models.problem import ProblemUploadRequest, ProblemUploadResponse
 
 router = APIRouter()
 

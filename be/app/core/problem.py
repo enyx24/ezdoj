@@ -1,10 +1,10 @@
 from app.db.connect_db import get_conn
 from app.utils.logging import logging
-from be.app.models.problem import ProblemRequest, TestUploadRequest
+from app.models.problem import ProblemUploadRequest, TestUploadRequest
 conn = get_conn()
 cursor = conn.cursor()
 
-def get_problem(problem_id):
+def get_problem(problem_id: int):
     cursor.execute("SELECT * FROM problems WHERE id = %s", (problem_id,))
     problem = cursor.fetchone()
     if not problem:
@@ -12,8 +12,8 @@ def get_problem(problem_id):
         return None
     return problem
 
-def set_problem(ProblemRequest):
-    if (ProblemRequest.id):
+def set_problem(problem_request: ProblemUploadRequest):
+    if problem_request.id:
         cursor.execute(
             """
             UPDATE problems
@@ -32,23 +32,23 @@ def set_problem(ProblemRequest):
             WHERE id = %s
             """,
             (
-                ProblemRequest.title,
-                ProblemRequest.description,
-                ProblemRequest.difficulty,
-                ProblemRequest.tags,
-                ProblemRequest.is_active,
-                ProblemRequest.author_id,
-                ProblemRequest.attachments,
-                ProblemRequest.time_limit,
-                ProblemRequest.memory_limit,
-                ProblemRequest.language_restrictions,
-                ProblemRequest.test_id,
+                problem_request.title,
+                problem_request.description,
+                problem_request.difficulty,
+                problem_request.tags,
+                problem_request.is_active,
+                problem_request.author_id,
+                problem_request.attachments,
+                problem_request.time_limit,
+                problem_request.memory_limit,
+                problem_request.language_restrictions,
+                problem_request.test_id,
             )
         )
         try:
             conn.commit()
-            logging.info(f"Problem with id {ProblemRequest.id} updated successfully.")
-            return ProblemRequest.id
+            logging.info(f"Problem with id {problem_request.id} updated successfully.")
+            return problem_request.id
         except Exception as e:
             conn.rollback()
             logging.error(f"Error occurred while updating problem: {e}")
@@ -59,17 +59,17 @@ def set_problem(ProblemRequest):
         VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP, NULL, %s, %s, %s, %s, %s, %s) RETURNING id
         """,
         (
-            ProblemRequest.title,
-            ProblemRequest.description,
-            ProblemRequest.difficulty,
-            ProblemRequest.tags,
-            ProblemRequest.is_active,
-            ProblemRequest.author_id,
-            ProblemRequest.attachments,
-            ProblemRequest.time_limit,
-            ProblemRequest.memory_limit,
-            ProblemRequest.language_restrictions,
-            ProblemRequest.test_id
+            problem_request.title,
+            problem_request.description,
+            problem_request.difficulty,
+            problem_request.tags,
+            problem_request.is_active,
+            problem_request.author_id,
+            problem_request.attachments,
+            problem_request.time_limit,
+            problem_request.memory_limit,
+            problem_request.language_restrictions,
+            problem_request.test_id
         )
     )
     try:
@@ -82,7 +82,7 @@ def set_problem(ProblemRequest):
         logging.error(f"Error occurred while creating problem: {e}")
         return None
 
-def get_test(test_id):
+def get_test(test_id: int):
     cursor.execute("SELECT * FROM tests WHERE id = %s", (test_id,))
     problem = cursor.fetchone()
     if not problem:
@@ -90,5 +90,23 @@ def get_test(test_id):
         return None
     return problem
 
-def set_test(TestUploadRequest):
-    cursor.execute("INSERT INTO tests()")
+def set_test(test_request: TestUploadRequest):
+    cursor.execute(
+        """
+        INSERT INTO tests (test_file_path, created_at, updated_at, author_id)
+        VALUES (%s, CURRENT_TIMESTAMP, NULL, %s) RETURNING id
+        """,
+        (
+            test_request.test_file_path,
+            test_request.author_id,
+        )
+    )
+    try:
+        conn.commit()
+        test_id = cursor.fetchone()[0]
+        logging.info(f"Test created with id {test_id}.")
+        return test_id
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"Error occurred while creating test: {e}")
+        return None

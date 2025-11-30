@@ -14,14 +14,21 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
 
 
 #====USERS TABLE====
+# initialize something idk
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "adminpass")
+ADMIN_FULLNAME = os.getenv("ADMIN_FULLNAME", "Admin User")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
+
+
+#====USERS TABLE====
 cursor.execute("""
     SELECT EXISTS (
         SELECT FROM information_schema.tables
         WHERE table_name = 'users'
         )
 """)
-if cursor.fetchone() is None:
-    # logging.info("Creatin users table...")
+if not cursor.fetchone()[0]:
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -60,8 +67,7 @@ cursor.execute("""
         WHERE table_name = 'problems'
         )
 """)
-if cursor.fetchone() is None:
-    # logging.info("Creating problems table...")
+if not cursor.fetchone()[0]:
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS problems (
         id SERIAL PRIMARY KEY,
@@ -72,7 +78,7 @@ if cursor.fetchone() is None:
         difficulty VARCHAR(50) NOT NULL,
         tags VARCHAR(255),
         is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP,
         author_id INT REFERENCES users(id) ON DELETE SET NULL,
         attachments VARCHAR(255),
@@ -106,16 +112,16 @@ if cursor.fetchone() is None:
                    attachments, 
                    time_limit, 
                    memory_limit, 
-                   language_restrictions,)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                   language_restrictions)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     """, (
         "A + B",
         "Read two integers and output their sum.",
-        "You need solution for what?",
-        "aint no way you need code solution for this?",
+        "Sample solution",
+        "Sample code solution",
         "Example",
         "Beginner",
-        "TRUE",
+        True,
         1,
         "",
         1,
@@ -136,16 +142,16 @@ cursor.execute("""
         WHERE table_name = 'tests'
         )
 """)
-if cursor.fetchone() is None:
+if not cursor.fetchone()[0]:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tests(
                 id SERIAL PRIMARY KEY,
                 test_file_path TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP,
-                author_id INT REFERENCES users(id) ON DELETE CASCADE,
+                author_id INT REFERENCES users(id) ON DELETE CASCADE
             );
-""")
+    """)
     try:
         conn.commit()
         logging.info("Tests table created successfully.")
@@ -154,27 +160,22 @@ if cursor.fetchone() is None:
         logging.error(f"Error creating tests table: {e}")
 
 cursor.execute("""
-    SELECT 1 FROM test WHERE id = 1
+    SELECT 1 FROM tests WHERE id = 1
 """)
 if cursor.fetchone() is None:
     cursor.execute("""
-        INSERT INTO problems (title, description, pdf_dir, sample_input, sample_output, time_limit, memory_limit)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO tests (test_file_path, created_at, updated_at, author_id)
+        VALUES (%s, CURRENT_TIMESTAMP, NULL, %s)
     """, (
-        "A + B",
-        "Read two integers and output their sum.",
-        "",
-        "1 2\n",
-        "3\n",
-        1,
-        256
+        "data/tests/t1p1u1.zip",
+        1
     ))
     try:
         conn.commit()
-        logging.info("Sample problem inserted successfully.")
+        logging.info("Sample test inserted successfully.")
     except Exception as e:
         conn.rollback()
-        logging.error(f"Error inserting sample problem: {e}")
+        logging.error(f"Error inserting sample test: {e}")
 
 #====SUBMISSIONS TABLE====
 cursor.execute("""
@@ -183,7 +184,7 @@ cursor.execute("""
         WHERE table_name = 'submissions'
         )
 """)
-if cursor.fetchone() is None:
+if not cursor.fetchone()[0]:
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS submissions(
                 id SERIAL PRIMARY KEY,
@@ -195,7 +196,7 @@ if cursor.fetchone() is None:
                 result TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-""")
+    """)
     try:
         conn.commit()
         logging.info("Submissions table created successfully.")
