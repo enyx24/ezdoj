@@ -14,6 +14,14 @@ ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
 
 
 #====USERS TABLE====
+# initialize something idk
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "adminpass")
+ADMIN_FULLNAME = os.getenv("ADMIN_FULLNAME", "Admin User")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@example.com")
+
+
+#====USERS TABLE====
 cursor.execute("""
     SELECT EXISTS (
         SELECT FROM information_schema.tables

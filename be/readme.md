@@ -1,5 +1,7 @@
 # Backend Installation & Structure Guide
 
+# Backend Installation & Structure Guide
+
 ## Installation
 
 ### 1. Requirements
@@ -49,6 +51,56 @@ docker run -d --name db \
 
 ---
 
+### 1. Requirements
+- **Python** 3.11.9  
+- **PostgreSQL** 16.10  
+- **Docker** (optional, for database container)  
+- **`be/` folder** (project root)
+
+---
+
+### 2. Virtual Environment Setup
+
+```bash
+python -m venv .venv
+
+# Activate:
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+
+# Linux / macOS
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+---
+
+### 3. Database Setup (via Docker)
+
+```bash
+docker run -d --name db \
+  -e POSTGRES_PASSWORD=123456 \
+  -p 5432:5432 \
+  postgres:16
+```
+
+---
+
+### 4. Run the Server
+
+1. Copy `.env.example` to `.env` inside `be/app/`
+2. Start the app:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+
+---
+
+## Project Structure
+
+```
 ## Project Structure
 
 ```
